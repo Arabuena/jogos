@@ -39,6 +39,10 @@ a {
   min-width: 0;
 }
 
+.mobile-ad-slot {
+  display: none;
+}
+
 .shell {
   width: min(1440px, calc(100% - 24px));
   margin: 0 auto;
@@ -292,15 +296,38 @@ a {
 }
 
 .team {
+  min-width: 0;
   font-size: 1.1rem;
   font-weight: 700;
 }
 
-.team small {
-  display: block;
-  color: rgba(244, 239, 229, 0.48);
-  font-size: 0.82rem;
-  font-weight: 400;
+.team-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.align-right .team-wrap {
+  justify-content: flex-end;
+}
+
+.team-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 1.35rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.team-name {
+  min-width: 0;
+  line-height: 1.3;
 }
 
 .detail-score,
@@ -427,12 +454,20 @@ a {
   }
 
   .ad-rail {
-    position: static;
-    order: 2;
+    display: none;
   }
 
   .content-column {
     order: 1;
+  }
+
+  .mobile-ad-slot {
+    display: block;
+    margin: 0 0 24px;
+  }
+
+  .mobile-ad-card {
+    min-height: auto;
   }
 
   .ad-card {
@@ -454,15 +489,15 @@ a {
 
 @media (max-width: 720px) {
   .shell {
-    width: min(100% - 16px, 1440px);
-    padding: 12px 0 24px;
+    width: min(100% - 12px, 1440px);
+    padding: 10px 0 24px;
   }
 
   .hero,
   .section,
   .topbar {
     padding: 18px;
-    border-radius: 22px;
+    border-radius: 20px;
   }
 
   .ad-card {
@@ -470,8 +505,32 @@ a {
     border-radius: 20px;
   }
 
+  .topbar {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .brand {
+    font-size: clamp(1.6rem, 9vw, 2.4rem);
+    letter-spacing: 0.14em;
+  }
+
+  .brand-copy {
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
   .match-body {
     grid-template-columns: 1fr;
+    gap: 14px;
     text-align: left;
   }
 
@@ -480,24 +539,91 @@ a {
     line-height: 0.98;
   }
 
+  .hero p,
+  .rich-text p,
+  .meta-text {
+    font-size: 0.98rem;
+    line-height: 1.7;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
   .section h2,
   .post-title {
     letter-spacing: 0.06em;
   }
 
+  .card {
+    padding: 16px;
+    border-radius: 20px;
+    gap: 12px;
+  }
+
+  .card-head {
+    gap: 8px;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+  }
+
+  .team,
+  .align-right {
+    text-align: left;
+  }
+
+  .team-wrap {
+    gap: 10px;
+  }
+
+  .align-right .team-wrap {
+    justify-content: flex-start;
+  }
+
+  .team-flag {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    font-size: 1.15rem;
+  }
+
+  .team-name {
+    font-size: 0.98rem;
+  }
+
   .detail-score,
   .score-pill {
-    justify-self: start;
-    font-size: 1.4rem;
+    justify-self: center;
+    width: 100%;
+    max-width: 180px;
+    text-align: center;
+    font-size: 1.25rem;
   }
 
   .button,
   .nav a {
     width: 100%;
     text-align: center;
+    padding: 11px 10px;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
   }
 
-  .align-right {
-    text-align: left;
+  .sync-item,
+  .timeline-item,
+  .stats-item {
+    padding-bottom: 12px;
+  }
+
+  .stats-item,
+  .timeline-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mobile-ad-slot {
+    margin-bottom: 18px;
   }
 }

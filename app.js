@@ -46,6 +46,27 @@ function resolveAdImages(indices = []) {
   return indices.map((index) => adImages[index] || adImages[0]);
 }
 
+function getPageAdImages(page) {
+  const selectedBySide = adMap[page] || adMap.home;
+
+  return [...resolveAdImages(selectedBySide.left), ...resolveAdImages(selectedBySide.right)];
+}
+
+function teamMarkup(teamName, teamFlag, alignRight = false) {
+  return `
+    <div class="team ${alignRight ? "align-right" : ""}">
+      <div class="team-wrap">
+        <span class="team-flag" aria-hidden="true">${teamFlag || "🏳️"}</span>
+        <span class="team-name">${teamName}</span>
+      </div>
+    </div>
+  `;
+}
+
+function mobileAdSlot(index) {
+  return `<div class="mobile-ad-slot" data-mobile-ad-slot="${index}"></div>`;
+}
+
 function renderSideAds() {
   const page = document.body.dataset.page || "home";
   const selectedBySide = adMap[page] || adMap.home;
@@ -76,9 +97,40 @@ function renderSideAds() {
   });
 }
 
+function renderInlineAds() {
+  const page = document.body.dataset.page || "home";
+  const mobileSlots = document.querySelectorAll("[data-mobile-ad-slot]");
+
+  if (!mobileSlots.length) {
+    return;
+  }
+
+  const images = getPageAdImages(page);
+
+  mobileSlots.forEach((slot) => {
+    const slotIndex = Number.parseInt(slot.dataset.mobileAdSlot || "0", 10);
+    const image = images[slotIndex % images.length] || adImages[0];
+
+    slot.innerHTML = `
+      <div class="ad-card mobile-ad-card">
+        <span class="ad-label">Publicidade</span>
+        <a
+          class="ad-link"
+          href="${whatsappUrl}"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Falar no WhatsApp da Associação Amigo do Povo"
+        >
+          <img class="ad-media" src="${image}" alt="Anúncio da Associação Amigo do Povo" loading="lazy" />
+        </a>
+      </div>
+    `;
+  });
+}
+
 function matchCard(match) {
   return `
-    <a class="card" href="/jogo?slug=${match.slug}">
+    <a class="card match-card" href="/jogo?slug=${match.slug}">
       <div class="card-head">
         <span>${match.group}</span>
         <span class="${match.status === "finished" ? "status-finished" : "status-scheduled"}">
@@ -86,15 +138,9 @@ function matchCard(match) {
         </span>
       </div>
       <div class="match-body">
-        <div class="team">
-          <small>${match.homeFlag}</small>
-          ${match.homeTeam}
-        </div>
+        ${teamMarkup(match.homeTeam, match.homeFlag)}
         <div class="score-pill">${match.scoreLabel}</div>
-        <div class="team align-right">
-          <small>${match.awayFlag}</small>
-          ${match.awayTeam}
-        </div>
+        ${teamMarkup(match.awayTeam, match.awayFlag, true)}
       </div>
       <div class="card-head">
         <span>${match.dateLabel}</span>
@@ -168,6 +214,8 @@ async function renderHome() {
 
     ${overviewBlock(stats)}
 
+    ${mobileAdSlot(0)}
+
     <section class="section">
       <div class="section-header">
         <div>
@@ -192,6 +240,8 @@ async function renderHome() {
       </div>
       <div class="grid three">${recent.map(matchCard).join("")}</div>
     </section>
+
+    ${mobileAdSlot(1)}
 
     <section class="section">
       <div class="section-header">
@@ -226,10 +276,12 @@ async function renderJogos() {
       <h1>Todos os jogos</h1>
       <p>Listagem completa dos placares e da agenda da competição, com navegação direta para cada partida.</p>
     </section>
+    ${mobileAdSlot(0)}
     <section class="section">
       <div class="section-header"><div><div class="eyebrow">Agenda</div><h2>Agendados</h2></div></div>
       <div class="grid three">${scheduled.map(matchCard).join("")}</div>
     </section>
+    ${mobileAdSlot(1)}
     <section class="section">
       <div class="section-header"><div><div class="eyebrow">Histórico</div><h2>Encerrados</h2></div></div>
       <div class="grid three">${finished.map(matchCard).join("")}</div>
@@ -253,11 +305,12 @@ async function renderJogo() {
       <h1>${match.homeTeam} vs ${match.awayTeam}</h1>
       <p>Ficha da partida com placar, status e informações principais da rodada.</p>
     </section>
+    ${mobileAdSlot(0)}
     <section class="section">
       <div class="match-body">
-        <div class="team"><small>${match.homeFlag}</small>${match.homeTeam}</div>
+        ${teamMarkup(match.homeTeam, match.homeFlag)}
         <div class="detail-score">${match.scoreLabel}</div>
-        <div class="team align-right"><small>${match.awayFlag}</small>${match.awayTeam}</div>
+        ${teamMarkup(match.awayTeam, match.awayFlag, true)}
       </div>
     </section>
     <section class="section">
@@ -288,6 +341,7 @@ async function renderPost() {
       <h1>${post.title}</h1>
       <p>${post.excerpt}</p>
     </section>
+    ${mobileAdSlot(0)}
     <section class="section">
       <div class="rich-text">${post.body.map((paragraph) => `<p>${paragraph}</p>`).join("")}</div>
       <div class="actions">
@@ -307,6 +361,7 @@ async function renderAdmin() {
       <p>Uma visão rápida do recorte editorial, da quantidade de partidas e do material disponível no site.</p>
     </section>
     ${overviewBlock(sync.counts)}
+    ${mobileAdSlot(0)}
     <section class="section">
       <div class="section-header"><div><div class="eyebrow">Contadores</div><h2>Inventário atual</h2></div></div>
       <div class="sync-grid">
@@ -335,26 +390,31 @@ async function bootstrap() {
   try {
     if (page === "home") {
       await renderHome();
+      renderInlineAds();
       return;
     }
 
     if (page === "jogos") {
       await renderJogos();
+      renderInlineAds();
       return;
     }
 
     if (page === "jogo") {
       await renderJogo();
+      renderInlineAds();
       return;
     }
 
     if (page === "post") {
       await renderPost();
+      renderInlineAds();
       return;
     }
 
     if (page === "admin") {
       await renderAdmin();
+      renderInlineAds();
     }
   } catch (error) {
     document.querySelector("#app").innerHTML = `<div class="error">${error.message}</div>`;
