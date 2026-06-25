@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Painel | Radar Copa 2026</title>
+    <title>Cobertura | Radar Copa 2026</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body data-page="admin">
@@ -12,16 +12,24 @@
         <div>
           <a class="brand" href="/">Radar Copa</a>
           <p class="brand-copy">
-            Visao tecnica da fonte, da rota de cron e do fluxo de publicacao na Vercel.
+            Área de cobertura com visão geral do torneio, dos jogos e do material editorial do site.
           </p>
         </div>
         <nav class="nav">
-          <a href="/">Inicio</a>
+          <a href="/">Início</a>
           <a href="/jogos">Jogos</a>
-          <a href="/admin">Painel</a>
+          <a href="/admin">Cobertura</a>
         </nav>
       </header>
-      <main id="app"></main>
+      <div class="page-layout">
+        <aside class="ad-rail">
+          <div class="ad-card" data-ad-slot="left"></div>
+        </aside>
+        <main id="app" class="content-column"></main>
+        <aside class="ad-rail">
+          <div class="ad-card" data-ad-slot="right"></div>
+        </aside>
+      </div>
     </div>
     <script src="/app.js"></script>
   </body>

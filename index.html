@@ -12,16 +12,24 @@
         <div>
           <a class="brand" href="/">Radar Copa</a>
           <p class="brand-copy">
-            Blog esportivo com scraping de resultados e atualizacao automatica, pensado para hospedar direto na Vercel.
+            Blog esportivo com resultados, agenda e análises da Copa, em uma leitura leve e direta.
           </p>
         </div>
         <nav class="nav">
-          <a href="/">Inicio</a>
+          <a href="/">Início</a>
           <a href="/jogos">Jogos</a>
-          <a href="/admin">Painel</a>
+          <a href="/admin">Cobertura</a>
         </nav>
       </header>
-      <main id="app"></main>
+      <div class="page-layout">
+        <aside class="ad-rail">
+          <div class="ad-card" data-ad-slot="left"></div>
+        </aside>
+        <main id="app" class="content-column"></main>
+        <aside class="ad-rail">
+          <div class="ad-card" data-ad-slot="right"></div>
+        </aside>
+      </div>
     </div>
     <script src="/app.js"></script>
   </body>

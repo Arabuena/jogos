@@ -6,6 +6,23 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+const adImages = [
+  "/assets/anuncios/1a318c95-229e-4e51-bc8f-66eb5c6b7efd.jpg",
+  "/assets/anuncios/2512b721-27d7-4a2c-b2f4-8c05e6252722.jpg",
+  "/assets/anuncios/601aa12c-f3d4-4b1d-a8f1-359b6d99a398.jpg",
+  "/assets/anuncios/a118796c-d858-4768-8f33-a0779c9b708b.jpg",
+  "/assets/anuncios/ddeaa65f-a149-4cd6-a003-e2baae048e5c.jpg",
+];
+const whatsappUrl = "https://wa.me/556293287625?text=Olá%2C%20vim%20pelo%20blog%20Radar%20Copa.";
+
+const adMap = {
+  home: [0, 1],
+  jogos: [2, 3],
+  jogo: [4, 0],
+  post: [1, 2],
+  admin: [3, 4],
+};
+
 function getQuery(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
@@ -19,6 +36,29 @@ async function fetchJson(url) {
   }
 
   return response.json();
+}
+
+function renderSideAds() {
+  const page = document.body.dataset.page || "home";
+  const [leftIndex, rightIndex] = adMap[page] || adMap.home;
+  const slots = document.querySelectorAll("[data-ad-slot]");
+  const selected = [adImages[leftIndex], adImages[rightIndex]];
+
+  slots.forEach((slot, index) => {
+    const image = selected[index] || adImages[index] || adImages[0];
+    slot.innerHTML = `
+      <span class="ad-label">Publicidade</span>
+      <a
+        class="ad-link"
+        href="${whatsappUrl}"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Falar no WhatsApp da Associação Amigo do Povo"
+      >
+        <img class="ad-media" src="${image}" alt="Anúncio lateral da Associação Amigo do Povo" loading="lazy" />
+      </a>
+    `;
+  });
 }
 
 function matchCard(match) {
@@ -59,29 +99,27 @@ function postCard(post) {
       <p class="meta-text">${post.excerpt}</p>
       <div class="card-head">
         <span>${formatDate(post.publishedAt)}</span>
-        <span>Ler materia</span>
+        <span>Ler matéria</span>
       </div>
     </a>
   `;
 }
 
-function syncBlock(sync) {
+function overviewBlock(stats) {
   return `
     <section class="section">
       <div class="section-header">
         <div>
-          <div class="eyebrow">Automacao</div>
-          <h2>Status do scraping</h2>
+          <div class="eyebrow">Panorama</div>
+          <h2>Visão geral</h2>
         </div>
-        <span class="pill">${sync.sourceLabel}</span>
+        <span class="pill">Cobertura do torneio</span>
       </div>
       <div class="sync-grid">
-        <div class="sync-item"><strong>Fonte ativa</strong><span>${sync.sourceName}</span></div>
-        <div class="sync-item"><strong>Ultima leitura</strong><span>${formatDate(sync.updatedAt)}</span></div>
-        <div class="sync-item"><strong>Cache estimado</strong><span>${formatDate(sync.cachedUntil)}</span></div>
-        <div class="sync-item"><strong>Agendamento</strong><span>${sync.nextCron}</span></div>
-        <div class="sync-item"><strong>Resultados</strong><span>${sync.resultsUrl || "Fonte local"}</span></div>
-        <div class="sync-item"><strong>Classificacao</strong><span>${sync.standingsUrl || "Fonte local"}</span></div>
+        <div class="sync-item"><strong>Partidas</strong><span>${stats.matches}</span></div>
+        <div class="sync-item"><strong>Rodadas</strong><span>${stats.groups}</span></div>
+        <div class="sync-item"><strong>Matérias</strong><span>${stats.posts}</span></div>
+        <div class="sync-item"><strong>Recorte</strong><span>Copa 2026</span></div>
       </div>
     </section>
   `;
@@ -93,28 +131,33 @@ async function renderHome() {
   const recent = games.items.filter((item) => item.status === "finished").slice(0, 6);
   const upcoming = games.items.filter((item) => item.status === "scheduled").slice(0, 4);
   const featured = recent[0];
+  const stats = {
+    matches: games.total,
+    groups: games.groups.length,
+    posts: posts.total,
+  };
 
   document.querySelector("#app").innerHTML = `
     <section class="hero">
-      <div class="eyebrow">Blog esportivo automatizado</div>
+      <div class="eyebrow">Cobertura editorial</div>
       <h1>Radar Copa 2026</h1>
       <p>
-        Projeto pronto para Vercel com scraping de resultados, cards editoriais e paginas de jogo atualizadas a partir
-        da fonte configurada.
+        Um blog esportivo com destaque para resultados, agenda, análises e páginas de partida pensadas para leitura
+        rápida no celular e navegação simples no desktop.
       </p>
       <div class="actions">
         <a class="button primary" href="/jogos">Ver todos os jogos</a>
-        <a class="button" href="/admin">Painel tecnico</a>
+        <a class="button" href="/admin">Ver cobertura</a>
       </div>
     </section>
 
-    ${syncBlock(games.sync)}
+    ${overviewBlock(stats)}
 
     <section class="section">
       <div class="section-header">
         <div>
           <div class="eyebrow">Destaque</div>
-          <h2>Resultado puxado da fonte</h2>
+          <h2>Jogo em evidência</h2>
         </div>
         <span class="pill">${featured ? featured.group : "Sem jogo"}</span>
       </div>
@@ -129,7 +172,7 @@ async function renderHome() {
       <div class="section-header">
         <div>
           <div class="eyebrow">Placar</div>
-          <h2>Ultimos resultados</h2>
+          <h2>Últimos resultados</h2>
         </div>
       </div>
       <div class="grid three">${recent.map(matchCard).join("")}</div>
@@ -139,7 +182,7 @@ async function renderHome() {
       <div class="section-header">
         <div>
           <div class="eyebrow">Agenda</div>
-          <h2>Proximos jogos</h2>
+          <h2>Próximos jogos</h2>
         </div>
       </div>
       <div class="grid two">${upcoming.map(matchCard).join("")}</div>
@@ -149,7 +192,7 @@ async function renderHome() {
       <div class="section-header">
         <div>
           <div class="eyebrow">Editorial</div>
-          <h2>Materias do blog</h2>
+          <h2>Matérias do blog</h2>
         </div>
       </div>
       <div class="posts-grid">${posts.items.map(postCard).join("")}</div>
@@ -166,14 +209,14 @@ async function renderJogos() {
     <section class="hero">
       <div class="eyebrow">Central de partidas</div>
       <h1>Todos os jogos</h1>
-      <p>Listagem completa dos placares raspados e das partidas agendadas para alimentar o blog em producao.</p>
+      <p>Listagem completa dos placares e da agenda da competição, com navegação direta para cada partida.</p>
     </section>
     <section class="section">
-      <div class="section-header"><div><div class="eyebrow">Ao vivo por cache</div><h2>Agendados</h2></div></div>
+      <div class="section-header"><div><div class="eyebrow">Agenda</div><h2>Agendados</h2></div></div>
       <div class="grid three">${scheduled.map(matchCard).join("")}</div>
     </section>
     <section class="section">
-      <div class="section-header"><div><div class="eyebrow">Historico</div><h2>Encerrados</h2></div></div>
+      <div class="section-header"><div><div class="eyebrow">Histórico</div><h2>Encerrados</h2></div></div>
       <div class="grid three">${finished.map(matchCard).join("")}</div>
     </section>
   `;
@@ -185,7 +228,7 @@ async function renderJogo() {
   const match = games.items[0];
 
   if (!match) {
-    document.querySelector("#app").innerHTML = '<div class="error">Jogo nao encontrado.</div>';
+    document.querySelector("#app").innerHTML = '<div class="error">Jogo não encontrado.</div>';
     return;
   }
 
@@ -193,7 +236,7 @@ async function renderJogo() {
     <section class="hero">
       <div class="eyebrow">${match.group}</div>
       <h1>${match.homeTeam} vs ${match.awayTeam}</h1>
-      <p>Pagina de detalhe gerada a partir da API de scraping do proprio projeto.</p>
+      <p>Ficha da partida com placar, status e informações principais da rodada.</p>
     </section>
     <section class="section">
       <div class="match-body">
@@ -203,11 +246,11 @@ async function renderJogo() {
       </div>
     </section>
     <section class="section">
-      <div class="section-header"><div><div class="eyebrow">Metadados</div><h2>Leitura tecnica</h2></div></div>
+      <div class="section-header"><div><div class="eyebrow">Resumo</div><h2>Ficha da partida</h2></div></div>
       <div class="stats-list">
         <div class="stats-item"><span>Status</span><strong>${match.status === "finished" ? "Encerrado" : "Agendado"}</strong></div>
-        <div class="stats-item"><span>Data na fonte</span><strong>${match.dateLabel}</strong></div>
-        <div class="stats-item"><span>Ultima leitura</span><strong>${formatDate(match.updatedAt)}</strong></div>
+        <div class="stats-item"><span>Data</span><strong>${match.dateLabel}</strong></div>
+        <div class="stats-item"><span>Atualizado em</span><strong>${formatDate(match.updatedAt)}</strong></div>
         <div class="stats-item"><span>Rodada</span><strong>${match.round}</strong></div>
       </div>
     </section>
@@ -220,7 +263,7 @@ async function renderPost() {
   const post = posts.items[0];
 
   if (!post) {
-    document.querySelector("#app").innerHTML = '<div class="error">Post nao encontrado.</div>';
+    document.querySelector("#app").innerHTML = '<div class="error">Post não encontrado.</div>';
     return;
   }
 
@@ -244,27 +287,27 @@ async function renderAdmin() {
 
   document.querySelector("#app").innerHTML = `
     <section class="hero">
-      <div class="eyebrow">Painel tecnico</div>
-      <h1>Operacao do scraping</h1>
-      <p>Visao enxuta do que a Vercel vai executar para atualizar o blog sem precisar de novo deploy.</p>
+      <div class="eyebrow">Cobertura</div>
+      <h1>Bastidores do blog</h1>
+      <p>Uma visão rápida do recorte editorial, da quantidade de partidas e do material disponível no site.</p>
     </section>
-    ${syncBlock(sync.sync)}
+    ${overviewBlock(sync.counts)}
     <section class="section">
-      <div class="section-header"><div><div class="eyebrow">Contadores</div><h2>Inventario atual</h2></div></div>
+      <div class="section-header"><div><div class="eyebrow">Contadores</div><h2>Inventário atual</h2></div></div>
       <div class="sync-grid">
         <div class="sync-item"><strong>Grupos</strong><span>${sync.counts.groups}</span></div>
         <div class="sync-item"><strong>Partidas</strong><span>${sync.counts.matches}</span></div>
         <div class="sync-item"><strong>Posts</strong><span>${sync.counts.posts}</span></div>
-        <div class="sync-item"><strong>Rota de cron</strong><span>/api/cron/sync-results</span></div>
+        <div class="sync-item"><strong>Categoria</strong><span>Cobertura esportiva</span></div>
       </div>
     </section>
     <section class="section">
-      <div class="section-header"><div><div class="eyebrow">Fluxo</div><h2>Como publicar na Vercel</h2></div></div>
+      <div class="section-header"><div><div class="eyebrow">Navegação</div><h2>Como explorar o site</h2></div></div>
       <div class="timeline">
-        <div class="timeline-item"><span>1. Configurar</span><strong>CRON_SECRET e, se quiser, overrides do Soccerway</strong></div>
-        <div class="timeline-item"><span>2. Variaveis</span><strong>SOCCERWAY_RESULTS_URL e SOCCERWAY_STANDINGS_URL sao opcionais</strong></div>
-        <div class="timeline-item"><span>3. Cron</span><strong>Vercel chama a rota a cada 15 minutos</strong></div>
-        <div class="timeline-item"><span>4. Resultado</span><strong>Home e detalhes mostram a nova leitura do Soccerway</strong></div>
+        <div class="timeline-item"><span>1. Home</span><strong>Abre destaques, agenda e matérias principais</strong></div>
+        <div class="timeline-item"><span>2. Jogos</span><strong>Reúne partidas agendadas e encerradas em um só lugar</strong></div>
+        <div class="timeline-item"><span>3. Partida</span><strong>Mostra placar, status e rodada de cada confronto</strong></div>
+        <div class="timeline-item"><span>4. Editorial</span><strong>Conecta análise, contexto e navegação entre jogos</strong></div>
       </div>
     </section>
   `;
@@ -272,6 +315,7 @@ async function renderAdmin() {
 
 async function bootstrap() {
   const page = document.body.dataset.page;
+  renderSideAds();
 
   try {
     if (page === "home") {
