@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "crons": [
+    {
+      "path": "/api/cron/sync-results",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}
