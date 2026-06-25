@@ -3,6 +3,16 @@ const path = require("node:path");
 
 const { posts } = require("./content");
 
+const LOCAL_FALLBACK_PATH = path.join(__dirname, "source.html");
+const SOCCERWAY_RESULTS_URL =
+  process.env.SOCCERWAY_RESULTS_URL ||
+  "https://br.soccerway.com/mundo/campeonato-do-mundo/resultados/";
+const SOCCERWAY_STANDINGS_URL =
+  process.env.SOCCERWAY_STANDINGS_URL ||
+  "https://br.soccerway.com/mundo/campeonato-do-mundo/classificacao/";
+const TOKEN_SEPARATOR = String.fromCharCode(172);
+const VALUE_SEPARATOR = String.fromCharCode(247);
+
 function stripTags(value) {
   return value
     .replace(/<[^>]+>/g, " ")
@@ -20,26 +30,166 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-async function readSourceHtml() {
-  const sourceUrl = process.env.SCRAPER_SOURCE_URL;
+function formatDateLabel(timestampSeconds) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(timestampSeconds * 1000));
+}
 
-  if (sourceUrl) {
-    const response = await fetch(sourceUrl);
+function parseTitleFromHtml(html, fallbackValue) {
+  const title = stripTags(html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] || fallbackValue);
+  return title
+    .replace(/&amp;/g, "&")
+    .replace(/\s*\|\s*Soccerway.*$/i, "")
+    .trim();
+}
 
-    if (!response.ok) {
-      throw new Error(`Falha ao buscar fonte remota: ${response.status}`);
-    }
+async function fetchSoccerwayPage(url) {
+  const response = await fetch(url, {
+    headers: {
+      "accept-language": "pt-BR,pt;q=0.9,en;q=0.8",
+      "user-agent": "Mozilla/5.0 (compatible; RadarCopaBot/1.0)",
+    },
+  });
 
-    return {
-      sourceName: sourceUrl,
-      html: await response.text(),
-    };
+  if (!response.ok) {
+    throw new Error(`Falha ao buscar ${url}: ${response.status}`);
   }
 
-  const fallbackPath = path.join(__dirname, "source.html");
+  return response.text();
+}
+
+async function readSourceHtml() {
+  try {
+    const [resultsHtml, standingsHtml] = await Promise.all([
+      fetchSoccerwayPage(SOCCERWAY_RESULTS_URL),
+      fetchSoccerwayPage(SOCCERWAY_STANDINGS_URL),
+    ]);
+
+    return {
+      mode: "soccerway",
+      sourceName: "Soccerway",
+      resultsHtml,
+      standingsHtml,
+    };
+  } catch (error) {
+    const fallbackError = error instanceof Error ? error.message : "erro desconhecido";
+
+    return {
+      mode: "local",
+      sourceName: `fallback local (${fallbackError})`,
+      html: await fs.readFile(LOCAL_FALLBACK_PATH, "utf8"),
+    };
+  }
+}
+
+function extractFeedData(html, feedName) {
+  const marker = `cjs.initialFeeds["${feedName}"]`;
+  const start = html.indexOf(marker);
+
+  if (start === -1) {
+    return "";
+  }
+
+  const dataStart = html.indexOf("`", start) + 1;
+  const dataEnd = html.indexOf("`", dataStart);
+
+  if (dataStart === 0 || dataEnd === -1) {
+    return "";
+  }
+
+  return html.slice(dataStart, dataEnd);
+}
+
+function parseFeedEntries(feedData) {
+  return feedData
+    .split(`${TOKEN_SEPARATOR}~AA${VALUE_SEPARATOR}`)
+    .slice(1)
+    .map((chunk) => `~AA${VALUE_SEPARATOR}${chunk}`)
+    .map((chunk) => {
+      const entry = {};
+
+      chunk
+        .split(TOKEN_SEPARATOR)
+        .filter(Boolean)
+        .forEach((token) => {
+          const separatorIndex = token.indexOf(VALUE_SEPARATOR);
+
+          if (separatorIndex === -1) {
+            return;
+          }
+
+          const key = token.slice(0, separatorIndex).replace(/^~/, "");
+          const value = token.slice(separatorIndex + 1);
+          entry[key] = value;
+        });
+
+      return entry;
+    })
+    .filter((entry) => entry.AE && entry.AF && entry.AD);
+}
+
+function buildSoccerwayMatch(entry, updatedAt, status) {
+  const timestamp = Number.parseInt(entry.AD, 10);
+  const homeTeam = entry.AE;
+  const awayTeam = entry.AF;
+  const homeScore = status === "finished" ? Number.parseInt(entry.AG || "0", 10) : null;
+  const awayScore = status === "finished" ? Number.parseInt(entry.AH || "0", 10) : null;
+
   return {
-    sourceName: "arquivo local",
-    html: await fs.readFile(fallbackPath, "utf8"),
+    id: entry.AA || slugify(`${homeTeam}-${awayTeam}-${entry.AD}`),
+    slug: slugify(`${entry.WU || homeTeam}-${entry.WV || awayTeam}-${entry.AD}`),
+    group: entry.ER || "Campeonato do mundo",
+    round: entry.ER || "Campeonato do mundo",
+    homeTeam,
+    homeFlag: entry.WM || "",
+    awayTeam,
+    awayFlag: entry.WN || "",
+    scoreLabel: status === "finished" ? `${homeScore} x ${awayScore}` : "A confirmar",
+    homeScore,
+    awayScore,
+    status,
+    dateLabel: formatDateLabel(timestamp),
+    updatedAt,
+  };
+}
+
+function parseSoccerwayDataset(resultsHtml, _standingsHtml, sourceName) {
+  const updatedAt = new Date().toISOString();
+  const resultEntries = parseFeedEntries(extractFeedData(resultsHtml, "summary-results"));
+  const fixtureEntries = parseFeedEntries(extractFeedData(resultsHtml, "summary-fixtures"));
+  const matches = [
+    ...resultEntries.map((entry) => buildSoccerwayMatch(entry, updatedAt, "finished")),
+    ...fixtureEntries.map((entry) => buildSoccerwayMatch(entry, updatedAt, "scheduled")),
+  ];
+  const groups = [...new Set(matches.map((match) => match.group))].map((groupName) => ({
+    id: slugify(groupName),
+    name: groupName,
+    standings: [],
+    matches: matches.filter((match) => match.group === groupName),
+  }));
+  const title = parseTitleFromHtml(resultsHtml, "Campeonato do mundo 2026");
+  const subtitle = "Resultados, calendario e classificacao puxados do Soccerway.";
+
+  return {
+    title,
+    subtitle,
+    groups,
+    matches,
+    posts,
+    sync: {
+      sourceName,
+      sourceLabel: "Soccerway ativo",
+      updatedAt,
+      nextCron: "A cada 15 minutos",
+      cachedUntil: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      resultsUrl: SOCCERWAY_RESULTS_URL,
+      standingsUrl: SOCCERWAY_STANDINGS_URL,
+    },
   };
 }
 
@@ -142,6 +292,11 @@ function parseGroups(html, updatedAt) {
 
 async function getDataset() {
   const source = await readSourceHtml();
+
+  if (source.mode === "soccerway") {
+    return parseSoccerwayDataset(source.resultsHtml, source.standingsHtml, source.sourceName);
+  }
+
   const updatedAt = new Date().toISOString();
   const header = parseHeader(source.html);
   const groups = parseGroups(source.html, updatedAt);
@@ -159,6 +314,8 @@ async function getDataset() {
       updatedAt,
       nextCron: "A cada 15 minutos",
       cachedUntil: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      resultsUrl: SOCCERWAY_RESULTS_URL,
+      standingsUrl: SOCCERWAY_STANDINGS_URL,
     },
   };
 }

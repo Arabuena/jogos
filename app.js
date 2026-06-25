@@ -80,6 +80,8 @@ function syncBlock(sync) {
         <div class="sync-item"><strong>Ultima leitura</strong><span>${formatDate(sync.updatedAt)}</span></div>
         <div class="sync-item"><strong>Cache estimado</strong><span>${formatDate(sync.cachedUntil)}</span></div>
         <div class="sync-item"><strong>Agendamento</strong><span>${sync.nextCron}</span></div>
+        <div class="sync-item"><strong>Resultados</strong><span>${sync.resultsUrl || "Fonte local"}</span></div>
+        <div class="sync-item"><strong>Classificacao</strong><span>${sync.standingsUrl || "Fonte local"}</span></div>
       </div>
     </section>
   `;
@@ -259,10 +261,10 @@ async function renderAdmin() {
     <section class="section">
       <div class="section-header"><div><div class="eyebrow">Fluxo</div><h2>Como publicar na Vercel</h2></div></div>
       <div class="timeline">
-        <div class="timeline-item"><span>1. Configurar</span><strong>SCRAPER_SOURCE_URL e CRON_SECRET</strong></div>
-        <div class="timeline-item"><span>2. Deploy</span><strong>Subir o projeto sem build complexo</strong></div>
+        <div class="timeline-item"><span>1. Configurar</span><strong>CRON_SECRET e, se quiser, overrides do Soccerway</strong></div>
+        <div class="timeline-item"><span>2. Variaveis</span><strong>SOCCERWAY_RESULTS_URL e SOCCERWAY_STANDINGS_URL sao opcionais</strong></div>
         <div class="timeline-item"><span>3. Cron</span><strong>Vercel chama a rota a cada 15 minutos</strong></div>
-        <div class="timeline-item"><span>4. Resultado</span><strong>Home e detalhes mostram a nova leitura da fonte</strong></div>
+        <div class="timeline-item"><span>4. Resultado</span><strong>Home e detalhes mostram a nova leitura do Soccerway</strong></div>
       </div>
     </section>
   `;
