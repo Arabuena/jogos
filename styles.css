@@ -55,6 +55,9 @@ a {
 .ad-rail {
   position: sticky;
   top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .ad-card {

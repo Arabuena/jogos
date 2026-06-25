@@ -16,11 +16,11 @@ const adImages = [
 const whatsappUrl = "https://wa.me/556293287625?text=Olá%2C%20vim%20pelo%20blog%20Radar%20Copa.";
 
 const adMap = {
-  home: [0, 1],
-  jogos: [2, 3],
-  jogo: [4, 0],
-  post: [1, 2],
-  admin: [3, 4],
+  home: { left: [0, 1], right: [2, 3] },
+  jogos: { left: [2, 4], right: [0, 1] },
+  jogo: { left: [4, 0], right: [1, 2] },
+  post: { left: [1, 3], right: [2, 4] },
+  admin: { left: [3, 4], right: [0, 2] },
 };
 
 function getQuery(name) {
@@ -38,26 +38,41 @@ async function fetchJson(url) {
   return response.json();
 }
 
+function resolveAdImages(indices = []) {
+  if (!indices.length) {
+    return adImages.slice(0, 2);
+  }
+
+  return indices.map((index) => adImages[index] || adImages[0]);
+}
+
 function renderSideAds() {
   const page = document.body.dataset.page || "home";
-  const [leftIndex, rightIndex] = adMap[page] || adMap.home;
+  const selectedBySide = adMap[page] || adMap.home;
   const slots = document.querySelectorAll("[data-ad-slot]");
-  const selected = [adImages[leftIndex], adImages[rightIndex]];
 
-  slots.forEach((slot, index) => {
-    const image = selected[index] || adImages[index] || adImages[0];
-    slot.innerHTML = `
-      <span class="ad-label">Publicidade</span>
-      <a
-        class="ad-link"
-        href="${whatsappUrl}"
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Falar no WhatsApp da Associação Amigo do Povo"
-      >
-        <img class="ad-media" src="${image}" alt="Anúncio lateral da Associação Amigo do Povo" loading="lazy" />
-      </a>
-    `;
+  slots.forEach((slot) => {
+    const side = slot.dataset.adSlot;
+    const images = resolveAdImages(selectedBySide[side]);
+
+    slot.innerHTML = images
+      .map(
+        (image) => `
+          <div class="ad-card">
+            <span class="ad-label">Publicidade</span>
+            <a
+              class="ad-link"
+              href="${whatsappUrl}"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Falar no WhatsApp da Associação Amigo do Povo"
+            >
+              <img class="ad-media" src="${image}" alt="Anúncio lateral da Associação Amigo do Povo" loading="lazy" />
+            </a>
+          </div>
+        `
+      )
+      .join("");
   });
 }
 
