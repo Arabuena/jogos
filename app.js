@@ -22,9 +22,126 @@ const adMap = {
   post: { left: [1, 3], right: [2, 4] },
   admin: { left: [3, 4], right: [0, 2] },
 };
+const teamCodeFlagMap = {
+  AFR: "🇿🇦",
+  ALE: "🇩🇪",
+  ARG: "🇦🇷",
+  BEL: "🇧🇪",
+  BOS: "🇧🇦",
+  BRA: "🇧🇷",
+  CAB: "🇨🇻",
+  CAN: "🇨🇦",
+  CAT: "🇶🇦",
+  COL: "🇨🇴",
+  CON: "🇨🇩",
+  COR: "🇰🇷",
+  COS: "🇨🇮",
+  CRO: "🇭🇷",
+  CUR: "🇨🇼",
+  CZE: "🇨🇿",
+  ECU: "🇪🇨",
+  EGI: "🇪🇬",
+  EQU: "🇪🇨",
+  ESC: "🏴",
+  ESP: "🇪🇸",
+  EUA: "🇺🇸",
+  FRA: "🇫🇷",
+  GAN: "🇬🇭",
+  HAI: "🇭🇹",
+  ING: "🏴",
+  IRA: "🇮🇶",
+  IRN: "🇮🇷",
+  JOR: "🇯🇴",
+  MAR: "🇲🇦",
+  MEX: "🇲🇽",
+  NOR: "🇳🇴",
+  NOV: "🇳🇿",
+  PAN: "🇵🇦",
+  PAR: "🇵🇾",
+  POR: "🇵🇹",
+  SAU: "🇸🇦",
+  SEN: "🇸🇳",
+  SUI: "🇨🇭",
+  TUR: "🇹🇷",
+  URU: "🇺🇾",
+  UZB: "🇺🇿",
+};
+const teamFlagMap = {
+  africa_do_sul: "🇿🇦",
+  alemanha: "🇩🇪",
+  arabia_saudita: "🇸🇦",
+  argelia: "🇩🇿",
+  argentina: "🇦🇷",
+  australia: "🇦🇺",
+  austria: "🇦🇹",
+  belgica: "🇧🇪",
+  bosnia_e_herzegovina: "🇧🇦",
+  bosnia_e_herz: "🇧🇦",
+  brasil: "🇧🇷",
+  cabo_verde: "🇨🇻",
+  canada: "🇨🇦",
+  catar: "🇶🇦",
+  colombia: "🇨🇴",
+  coreia_do_sul: "🇰🇷",
+  costa_do_marfim: "🇨🇮",
+  croacia: "🇭🇷",
+  curacao: "🇨🇼",
+  dr_congo: "🇨🇩",
+  egito: "🇪🇬",
+  equador: "🇪🇨",
+  escocia: "🏴",
+  espanha: "🇪🇸",
+  estados_unidos: "🇺🇸",
+  eua: "🇺🇸",
+  franca: "🇫🇷",
+  gana: "🇬🇭",
+  haiti: "🇭🇹",
+  inglaterra: "🏴",
+  ira: "🇮🇷",
+  iraque: "🇮🇶",
+  jordania: "🇯🇴",
+  marrocos: "🇲🇦",
+  mexico: "🇲🇽",
+  noruega: "🇳🇴",
+  nova_zelandia: "🇳🇿",
+  panama: "🇵🇦",
+  paraguai: "🇵🇾",
+  portugal: "🇵🇹",
+  r_d_congo: "🇨🇩",
+  republica_tcheca: "🇨🇿",
+  senegal: "🇸🇳",
+  suica: "🇨🇭",
+  turquia: "🇹🇷",
+  tchequia: "🇨🇿",
+  uruguai: "🇺🇾",
+  uzbequistao: "🇺🇿",
+};
 
 function getQuery(name) {
   return new URLSearchParams(window.location.search).get(name);
+}
+
+function normalizeTeamKey(value) {
+  return (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function escapeAttribute(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;");
+}
+
+function resolveTeamFlag(teamName, teamFlag) {
+  if (teamFlag && !/^[A-Z]{2,4}$/.test(teamFlag)) {
+    return teamFlag;
+  }
+
+  return teamFlagMap[normalizeTeamKey(teamName)] || teamCodeFlagMap[teamFlag] || teamFlag || "🏳️";
 }
 
 async function fetchJson(url) {
@@ -56,7 +173,7 @@ function teamMarkup(teamName, teamFlag, alignRight = false) {
   return `
     <div class="team ${alignRight ? "align-right" : ""}">
       <div class="team-wrap">
-        <span class="team-flag" aria-hidden="true">${teamFlag || "🏳️"}</span>
+        <span class="team-flag" aria-hidden="true">${resolveTeamFlag(teamName, teamFlag)}</span>
         <span class="team-name">${teamName}</span>
       </div>
     </div>
@@ -65,6 +182,19 @@ function teamMarkup(teamName, teamFlag, alignRight = false) {
 
 function mobileAdSlot(index) {
   return `<div class="mobile-ad-slot" data-mobile-ad-slot="${index}"></div>`;
+}
+
+function shareButton(title, text) {
+  return `
+    <button
+      class="button share-button"
+      type="button"
+      data-share-title="${escapeAttribute(title)}"
+      data-share-text="${escapeAttribute(text)}"
+    >
+      Compartilhar
+    </button>
+  `;
 }
 
 function renderSideAds() {
@@ -125,6 +255,47 @@ function renderInlineAds() {
         </a>
       </div>
     `;
+  });
+}
+
+async function sharePage(button) {
+  const title = button.dataset.shareTitle || document.title;
+  const text = button.dataset.shareText || "Confira esta página no Radar Copa.";
+  const url = window.location.href;
+  const originalLabel = button.dataset.originalLabel || button.textContent;
+
+  button.dataset.originalLabel = originalLabel;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      return;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(url);
+    button.textContent = "Link copiado";
+  } catch {
+    const shareUrl = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+    button.textContent = "Abrindo compartilhamento";
+  }
+
+  window.setTimeout(() => {
+    button.textContent = originalLabel;
+  }, 1800);
+}
+
+function bindShareButtons() {
+  document.querySelectorAll("[data-share-title]").forEach((button) => {
+    button.onclick = () => {
+      sharePage(button);
+    };
   });
 }
 
@@ -209,6 +380,7 @@ async function renderHome() {
       <div class="actions">
         <a class="button primary" href="/jogos">Ver todos os jogos</a>
         <a class="button" href="/admin">Ver cobertura</a>
+        ${shareButton("Radar Copa 2026", "Confira resultados, agenda e análises da Copa no Radar Copa.")}
       </div>
     </section>
 
@@ -275,6 +447,9 @@ async function renderJogos() {
       <div class="eyebrow">Central de partidas</div>
       <h1>Todos os jogos</h1>
       <p>Listagem completa dos placares e da agenda da competição, com navegação direta para cada partida.</p>
+      <div class="actions">
+        ${shareButton("Todos os jogos | Radar Copa 2026", "Confira a agenda e os placares da Copa no Radar Copa.")}
+      </div>
     </section>
     ${mobileAdSlot(0)}
     <section class="section">
@@ -304,6 +479,12 @@ async function renderJogo() {
       <div class="eyebrow">${match.group}</div>
       <h1>${match.homeTeam} vs ${match.awayTeam}</h1>
       <p>Ficha da partida com placar, status e informações principais da rodada.</p>
+      <div class="actions">
+        ${shareButton(
+          `${match.homeTeam} x ${match.awayTeam} | Radar Copa 2026`,
+          `Veja a página da partida entre ${match.homeTeam} e ${match.awayTeam} no Radar Copa.`,
+        )}
+      </div>
     </section>
     ${mobileAdSlot(0)}
     <section class="section">
@@ -340,6 +521,9 @@ async function renderPost() {
       <div class="eyebrow">${post.category}</div>
       <h1>${post.title}</h1>
       <p>${post.excerpt}</p>
+      <div class="actions">
+        ${shareButton(post.title, `Confira esta matéria no Radar Copa: ${post.title}`)}
+      </div>
     </section>
     ${mobileAdSlot(0)}
     <section class="section">
@@ -359,6 +543,9 @@ async function renderAdmin() {
       <div class="eyebrow">Cobertura</div>
       <h1>Bastidores do blog</h1>
       <p>Uma visão rápida do recorte editorial, da quantidade de partidas e do material disponível no site.</p>
+      <div class="actions">
+        ${shareButton("Cobertura | Radar Copa 2026", "Veja os bastidores e números do Radar Copa.")}
+      </div>
     </section>
     ${overviewBlock(sync.counts)}
     ${mobileAdSlot(0)}
@@ -391,30 +578,35 @@ async function bootstrap() {
     if (page === "home") {
       await renderHome();
       renderInlineAds();
+      bindShareButtons();
       return;
     }
 
     if (page === "jogos") {
       await renderJogos();
       renderInlineAds();
+      bindShareButtons();
       return;
     }
 
     if (page === "jogo") {
       await renderJogo();
       renderInlineAds();
+      bindShareButtons();
       return;
     }
 
     if (page === "post") {
       await renderPost();
       renderInlineAds();
+      bindShareButtons();
       return;
     }
 
     if (page === "admin") {
       await renderAdmin();
       renderInlineAds();
+      bindShareButtons();
     }
   } catch (error) {
     document.querySelector("#app").innerHTML = `<div class="error">${error.message}</div>`;
