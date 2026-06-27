@@ -716,6 +716,56 @@ a {
     }
 }
 
+/* 🔧 FIX DESKTOP CROSS-BROWSER (Chrome / Opera / Edge) */
+
+.match-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.match-row .teams{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0; /* ESSENCIAL para não quebrar flex */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.match-row .score{
+  flex: 0 0 auto;
+  min-width: 70px;
+  text-align: center;
+}
+
+.match-row .date{
+  flex: 0 0 auto;
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* segurança extra desktop */
+.group-card{
+  overflow: hidden;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
 
   
 }
