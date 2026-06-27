@@ -280,6 +280,41 @@
     body { background: #0a1628; }
     .group-card { break-inside: avoid; }
   }
+
+  /* Mantém tudo na mesma linha dentro da célula TIME */
+td.time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Evita quebra do nome do time */
+td.time span,
+td.time div {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* Garante que emoji + nome fiquem lado a lado */
+td.time {
+  flex-direction: row;
+}
+
+/* Segurança extra para mobile */
+@media (max-width: 600px) {
+  table {
+    width: 100%;
+  }
+
+  td, th {
+    font-size: 12px;
+  }
+
+  td.time {
+    font-size: 12px;
+  }
+}
 </style>
 </head>
 <body>
