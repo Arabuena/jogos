@@ -1,34 +1,43 @@
 const posts = [
   {
-    slug: "brasil-chega-forte-apos-primeira-fase",
-    title: "Brasil chega forte após a primeira fase",
+    slug: "brasil-chega-ao-mata-mata-com-status-de-candidato-e-duelo-contra-japao",
+    title: "Brasil chega ao mata-mata com status de candidato e encara o Japão no dia 29",
     excerpt:
-      "A seleção fecha a etapa inicial com saldo alto, defesa segura e bom encaixe entre intensidade e posse.",
+      "Seleção avança com consistência e já se prepara para duelo decisivo contra o Japão na próxima fase.",
     body: [
-      "O Brasil empilhou bons sinais técnicos na primeira fase e saiu com uma leitura clara para o mata-mata: time curto, volume alto e poucos espaços concedidos.",
-      "No blog, esse tipo de narrativa conversa com os resultados recentes. O placar organiza a leitura do jogo, enquanto a matéria adiciona contexto, forma e interpretação.",
-      "Para um projeto editorial, essa combinação valoriza a home, amplia o repertório de leitura e mantém o foco no que aconteceu em campo.",
+      "O Brasil chega ao mata-mata após uma fase inicial consistente, sustentando boa organização defensiva, controle de ritmo e evolução progressiva ao longo dos jogos.",
+
+      "A equipe agora entra em um novo cenário: jogos eliminatórios, onde a margem de erro é mínima e cada detalhe pode definir a continuidade no torneio.",
+
+      "O próximo desafio já está definido. No dia 29 de junho, o Brasil enfrenta o Japão em um confronto de alta intensidade, marcando a estreia da Seleção nesta fase decisiva.",
+
+      "O duelo coloca frente a frente duas equipes com estilos diferentes: o Brasil apostando em controle e talento individual, enquanto o Japão chega com organização tática e velocidade nas transições.",
+
+      "A expectativa cresce dentro e fora de campo, já que a partida abre oficialmente a caminhada brasileira no mata-mata e pode definir o tom da sequência no torneio."
     ],
     category: "Análise",
-    relatedTeams: ["Brasil", "Marrocos", "Escócia", "Haiti"],
-    publishedAt: "2026-06-25T10:00:00.000Z",
+    relatedTeams: ["Brasil", "Japão", "França", "Espanha"],
+    publishedAt: "2026-06-28T12:00:00.000Z"
   },
+
   {
-    slug: "mexico-usa-fator-casa-e-domina-o-grupo-a",
-    title: "México usa fator casa e domina o Grupo A",
+    slug: "vozinha-brilha-e-coloca-cabo-verde-em-destaque-na-fase-inicial",
+    title: "Vozinha brilha e coloca Cabo Verde em destaque na fase inicial",
     excerpt:
-      "Campanha perfeita, defesa intacta e um início de torneio que muda o peso editorial da chave.",
+      "Goleiro assume protagonismo com atuações decisivas e transforma Cabo Verde em uma das surpresas do torneio.",
     body: [
-      "O México foi um dos grandes destaques da fase inicial, vencendo todos os jogos e saindo sem sofrer gols. Isso cria uma história forte para a home e para o bloco de resultados recentes.",
-      "No site, as matérias relacionadas ampliam a leitura das partidas e ajudam a construir conexões entre times, grupos e momentos do torneio.",
-      "Esse encaixe entre placar, contexto e análise deixa a cobertura mais consistente para quem acompanha a competição diariamente.",
+      " foi um dos grandes nomes da fase inicial, com atuações seguras e defesas decisivas em momentos críticos dos jogos.",
+
+      "A seleção de Cabo Verde surpreendeu pela organização defensiva e pela capacidade de competir em alto nível contra adversários mais tradicionais, sustentando resultados importantes ao longo da fase de grupos.",
+
+      "O grande diferencial da equipe foi justamente a segurança no gol. Em várias partidas, Vozinha foi o responsável direto por manter o time vivo na disputa, garantindo pontos fundamentais para a classificação.",
+
+      "Com esse desempenho, Cabo Verde passa a ser visto como uma das histórias mais interessantes do torneio, especialmente pela força defensiva e pela liderança do seu goleiro em campo."
     ],
     category: "Destaque",
-    relatedTeams: ["México", "África do Sul", "Coreia do Sul", "Tchéquia"],
-    publishedAt: "2026-06-25T08:30:00.000Z",
-  },
+    relatedTeams: ["Cabo Verde", "Senegal", "Marrocos", "Egito"],
+    publishedAt: "2026-06-28T12:00:00.000Z"
+  }
 ];
 
-module.exports = {
-  posts,
-};
+module.exports = { posts };
